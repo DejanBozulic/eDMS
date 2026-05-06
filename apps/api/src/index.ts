@@ -13,6 +13,18 @@ app.use(helmet());
 app.use(cors({ origin: webOrigin }));
 app.use(express.json({ limit: "25mb" }));
 
+app.get("/", (_req, res) => {
+  res.json({
+    service: "eDMS API",
+    status: "ok",
+    frontend: webOrigin,
+    endpoints: {
+      health: "/health",
+      documents: "/documents"
+    }
+  });
+});
+
 app.use("/health", healthRouter);
 app.use("/documents", documentsRouter);
 
