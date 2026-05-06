@@ -19,8 +19,12 @@ Iz linka lahko razberemo:
 - SharePoint host: `ctrling.sharepoint.com`
 - Site path: `/sites/INZENIRING`
 - Site URL: `https://ctrling.sharepoint.com/sites/INZENIRING`
+- Document library: `Dokumenti`
+- Drive ID: `b!B9cHdCTy_0uTpR0732vk-vWFoF56n5hIuARlJF6ra7eEd5OzI2LkSLI-BoBvD3X6`
 
-Ta pot je uporabna kot poslovna oziroma lokalna oznaka ciljne knjiznice in mape. Za dejanski Microsoft Graph upload bomo potrebovali se `siteId` in `driveId`.
+Ta pot je uporabna kot poslovna oziroma lokalna oznaka ciljne knjiznice in mape. Za dejanski Microsoft Graph upload imamo `driveId`, manjka se `siteId` za stabilno aplikacijsko konfiguracijo.
+
+Opomba: pri API klicih je treba mapo `#eDMS` nasloviti kot `%23eDMS`, ker je `#` poseben URL znak.
 
 ## Predlagana struktura pod `#eDMS`
 
@@ -29,6 +33,8 @@ Ta pot je uporabna kot poslovna oziroma lokalna oznaka ciljne knjiznice in mape.
 - `Effective`
 - `Archive`
 - `Validation`
+
+Status: mape so ustvarjene v SharePointu.
 
 ## Naslednji identifikatorji za Graph API
 
