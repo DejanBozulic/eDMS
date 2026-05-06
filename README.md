@@ -31,7 +31,7 @@ Frontend bo privzeto na `http://localhost:5180`, API na `http://localhost:4000`.
 ## Naslednji produkcijski koraki
 
 1. Ustvari Microsoft Entra ID app registration.
-2. Nastavi Graph API dovoljenja za SharePoint knjižnico.
+2. Nastavi Graph API dovoljenja za SharePoint knjiznico.
 3. Pripravi SharePoint site in document library za uradne dokumente.
 4. Nastavi `.env` iz `.env.example`.
 5. Izberi podpisnega ponudnika za kvalificirane podpise, ce so zahtevani.
@@ -39,8 +39,8 @@ Frontend bo privzeto na `http://localhost:5180`, API na `http://localhost:4000`.
 
 ## Produktni nacrt
 
-- [eDMS produktni nacrt](docs/product-blueprint.md)
-- [eDMS implementacijski nacrt](docs/implementation-roadmap.md)
+- [eDMS produktni nacrt](https://github.com/DejanBozulic/eDMS/blob/main/docs/product-blueprint.md)
+- [eDMS implementacijski nacrt](https://github.com/DejanBozulic/eDMS/blob/main/docs/implementation-roadmap.md)
 
 ## Lokalni naslovi
 
