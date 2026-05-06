@@ -4,6 +4,7 @@ import express from "express";
 import helmet from "helmet";
 import { documentsRouter } from "./modules/documents/documents.router.js";
 import { healthRouter } from "./modules/health.router.js";
+import { sharePointRouter } from "./modules/sharepoint/sharepoint.router.js";
 
 const app = express();
 const port = Number(process.env.API_PORT ?? 4000);
@@ -20,13 +21,15 @@ app.get("/", (_req, res) => {
     frontend: webOrigin,
     endpoints: {
       health: "/health",
-      documents: "/documents"
+      documents: "/documents",
+      sharePointConfig: "/sharepoint/config"
     }
   });
 });
 
 app.use("/health", healthRouter);
 app.use("/documents", documentsRouter);
+app.use("/sharepoint", sharePointRouter);
 
 app.listen(port, () => {
   console.log(`eDMS API listening on http://localhost:${port}`);
