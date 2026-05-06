@@ -506,6 +506,15 @@ th {
   background: #16464f;
 }
 
+.secondary-link {
+  background: #ffffff;
+  color: #12363d;
+}
+
+.secondary-link:hover {
+  background: #f4faf9;
+}
+
 .workflow-actions {
   display: grid;
   gap: 8px;

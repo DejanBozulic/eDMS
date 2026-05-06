@@ -3,7 +3,7 @@ import { basename, extname, join, resolve } from "node:path";
 import { Router } from "express";
 import { z } from "zod";
 import { countDocumentsByType, createAuditEvent, createDocument, getDocument, listAuditEvents, listDocuments, updateDocumentWorkflow } from "../../db.js";
-import { buildSharePointPlaceholderPath, type EdmsStorageFolder, uploadDocumentPlaceholder } from "../sharepoint/sharepoint.service.js";
+import { buildSharePointPlaceholderPath, type EdmsStorageFolder, uploadDocumentPlaceholder, uploadLocalFileToSharePoint } from "../sharepoint/sharepoint.service.js";
 
 export const documentsRouter = Router();
 
@@ -158,14 +158,23 @@ documentsRouter.post("/:id/workflow", async (req, res, next) => {
 
     const now = new Date().toISOString();
     const movedFile = moveStoredFileForTransition(document, transition.storageFolder);
-    const sharePointTarget = transition.storageFolder
-      ? buildSharePointPlaceholderPath(
+    const sharePointTarget = transition.storageFolder && document.storedFilePath
+      ? await uploadLocalFileToSharePoint(
+        movedFile?.storedFilePath ?? document.storedFilePath,
         document.documentNumber,
         document.title,
         document.fileName ? extname(document.fileName) : ".pdf",
+        document.mimeType ?? "application/octet-stream",
         transition.storageFolder
       )
-      : null;
+      : transition.storageFolder
+        ? buildSharePointPlaceholderPath(
+          document.documentNumber,
+          document.title,
+          document.fileName ? extname(document.fileName) : ".pdf",
+          transition.storageFolder
+        )
+        : null;
     const updated = updateDocumentWorkflow(document.id, {
       status: transition.status,
       lifecycle: transition.lifecycle,
@@ -173,7 +182,9 @@ documentsRouter.post("/:id/workflow", async (req, res, next) => {
       effectiveAt: transition.timestampField === "effectiveAt" ? now : undefined,
       archivedAt: transition.timestampField === "archivedAt" ? now : undefined,
       storedFilePath: movedFile?.storedFilePath,
-      sharePointPath: sharePointTarget?.path
+      sharePointPath: sharePointTarget?.path,
+      sharePointItemId: sharePointTarget?.itemId,
+      sharePointWebUrl: sharePointTarget?.webUrl
     });
 
     createAuditEvent({
@@ -222,8 +233,9 @@ documentsRouter.post("/", async (req, res, next) => {
       trainingStatus: payload.requiresTraining ? "Assigned" : "NotRequired",
       signatureStatus: payload.requiresSignature ? "Pending" : "NotRequired",
       sharePointDriveId: process.env.GRAPH_DRIVE_ID ?? null,
-      sharePointItemId: null,
+      sharePointItemId: sharePointTarget.itemId ?? null,
       sharePointPath: sharePointTarget.path,
+      sharePointWebUrl: sharePointTarget.webUrl ?? null,
       searchableContent: null,
       reviewDueAt: null,
       effectiveAt: null,
@@ -260,13 +272,20 @@ documentsRouter.post("/import-local", async (req, res, next) => {
     const originalFileName = basename(sourceFilePath);
     const title = payload.title ?? originalFileName.replace(extname(originalFileName), "");
     const documentNumber = extractDocumentNumber(originalFileName) ?? await nextDocumentNumber(payload.type);
-    const sharePointTarget = await uploadDocumentPlaceholder(documentNumber, title, extname(originalFileName) || ".docx");
     const uploadRoot = resolve(process.cwd(), "uploads", "Drafts");
     const storedFileName = `${documentNumber}-${sanitizeFileName(title)}${extname(originalFileName) || ".docx"}`;
     const storedFilePath = join(uploadRoot, storedFileName);
 
     mkdirSync(uploadRoot, { recursive: true });
     copyFileSync(sourceFilePath, storedFilePath);
+    const sharePointTarget = await uploadLocalFileToSharePoint(
+      storedFilePath,
+      documentNumber,
+      title,
+      extname(originalFileName) || ".docx",
+      mimeTypeForExtension(extname(originalFileName)),
+      "Drafts"
+    );
 
     const document = createDocument({
       documentNumber,
@@ -281,9 +300,10 @@ documentsRouter.post("/import-local", async (req, res, next) => {
       lifecycle: "Draft",
       trainingStatus: payload.requiresTraining ? "Assigned" : "NotRequired",
       signatureStatus: payload.requiresSignature ? "Pending" : "NotRequired",
-      sharePointDriveId: process.env.GRAPH_DRIVE_ID ?? null,
-      sharePointItemId: null,
+      sharePointDriveId: sharePointTarget.driveId ?? process.env.GRAPH_DRIVE_ID ?? null,
+      sharePointItemId: sharePointTarget.itemId ?? null,
       sharePointPath: sharePointTarget.path,
+      sharePointWebUrl: sharePointTarget.webUrl ?? null,
       searchableContent: null,
       reviewDueAt: null,
       effectiveAt: null,

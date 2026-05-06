@@ -15,6 +15,7 @@ type ApiDocument = {
   reviewDueAt?: string;
   retentionYears: number;
   sharePointPath?: string | null;
+  sharePointWebUrl?: string | null;
   fileName?: string | null;
   fileSize?: number | null;
   mimeType?: string | null;
@@ -54,6 +55,7 @@ export type DocumentDetail = EdmsDocument & {
   mimeType?: string | null;
   sourceFilePath?: string | null;
   storedFilePath?: string | null;
+  sharePointWebUrl?: string | null;
   auditEvents: AuditEvent[];
   downloadUrl: string;
 };
@@ -119,6 +121,7 @@ export async function fetchDocumentDetail(documentId: string): Promise<DocumentD
     mimeType: payload.data.mimeType,
     sourceFilePath: payload.data.sourceFilePath,
     storedFilePath: payload.data.storedFilePath,
+    sharePointWebUrl: payload.data.sharePointWebUrl,
     auditEvents: payload.data.auditEvents ?? [],
     downloadUrl: `/api/documents/${documentId}/download`
   };
@@ -168,7 +171,7 @@ function mapApiDocument(document: ApiDocument): EdmsDocument {
     retention: `${document.retentionYears} let`,
     training: trainingLabels[document.trainingStatus],
     signature: signatureLabels[document.signatureStatus],
-    repository: document.sharePointPath ?? document.sharePointTarget?.path ?? "SharePoint / eDMS Documents"
+    repository: document.sharePointWebUrl ?? document.sharePointPath ?? document.sharePointTarget?.path ?? "SharePoint / eDMS Documents"
   };
 }
 

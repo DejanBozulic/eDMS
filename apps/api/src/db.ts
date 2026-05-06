@@ -18,6 +18,7 @@ export type DocumentRow = {
   sharePointDriveId: string | null;
   sharePointItemId: string | null;
   sharePointPath: string | null;
+  sharePointWebUrl: string | null;
   searchableContent: string | null;
   retentionYears: number;
   reviewDueAt: string | null;
@@ -67,6 +68,8 @@ type UpdateDocumentWorkflowInput = {
   effectiveAt?: string | null;
   archivedAt?: string | null;
   sharePointPath?: string | null;
+  sharePointItemId?: string | null;
+  sharePointWebUrl?: string | null;
   storedFilePath?: string | null;
 };
 
@@ -96,6 +99,7 @@ database.exec(`
     sharePointDriveId TEXT,
     sharePointItemId TEXT,
     sharePointPath TEXT,
+    sharePointWebUrl TEXT,
     searchableContent TEXT,
     retentionYears INTEGER NOT NULL DEFAULT 10,
     reviewDueAt TEXT,
@@ -133,6 +137,7 @@ ensureDocumentColumn("fileSize", "INTEGER");
 ensureDocumentColumn("mimeType", "TEXT");
 ensureDocumentColumn("sourceFilePath", "TEXT");
 ensureDocumentColumn("storedFilePath", "TEXT");
+ensureDocumentColumn("sharePointWebUrl", "TEXT");
 
 seedDocuments();
 
@@ -158,6 +163,7 @@ export function createDocument(input: CreateDocumentInput): DocumentRow {
   const document: DocumentRow = {
     ...input,
     id: input.id ?? crypto.randomUUID(),
+    sharePointWebUrl: input.sharePointWebUrl ?? null,
     fileName: input.fileName ?? null,
     fileSize: input.fileSize ?? null,
     mimeType: input.mimeType ?? null,
@@ -171,14 +177,14 @@ export function createDocument(input: CreateDocumentInput): DocumentRow {
     INSERT INTO documents (
       id, documentNumber, title, type, owner, department, confidentiality, status, version,
       lifecycle, trainingStatus, signatureStatus, sharePointDriveId, sharePointItemId,
-      sharePointPath, searchableContent, retentionYears, reviewDueAt, effectiveAt, archivedAt,
+      sharePointPath, sharePointWebUrl, searchableContent, retentionYears, reviewDueAt, effectiveAt, archivedAt,
       fileName, fileSize, mimeType, sourceFilePath, storedFilePath,
       createdAt, updatedAt
     )
     VALUES (
       @id, @documentNumber, @title, @type, @owner, @department, @confidentiality, @status, @version,
       @lifecycle, @trainingStatus, @signatureStatus, @sharePointDriveId, @sharePointItemId,
-      @sharePointPath, @searchableContent, @retentionYears, @reviewDueAt, @effectiveAt, @archivedAt,
+      @sharePointPath, @sharePointWebUrl, @searchableContent, @retentionYears, @reviewDueAt, @effectiveAt, @archivedAt,
       @fileName, @fileSize, @mimeType, @sourceFilePath, @storedFilePath,
       @createdAt, @updatedAt
     )
@@ -215,6 +221,8 @@ export function updateDocumentWorkflow(id: string, input: UpdateDocumentWorkflow
       lifecycle = @lifecycle,
       signatureStatus = @signatureStatus,
       sharePointPath = @sharePointPath,
+      sharePointItemId = @sharePointItemId,
+      sharePointWebUrl = @sharePointWebUrl,
       storedFilePath = @storedFilePath,
       effectiveAt = @effectiveAt,
       archivedAt = @archivedAt,
@@ -226,6 +234,8 @@ export function updateDocumentWorkflow(id: string, input: UpdateDocumentWorkflow
     lifecycle: input.lifecycle,
     signatureStatus: input.signatureStatus ?? current.signatureStatus,
     sharePointPath: input.sharePointPath ?? current.sharePointPath,
+    sharePointItemId: input.sharePointItemId ?? current.sharePointItemId,
+    sharePointWebUrl: input.sharePointWebUrl ?? current.sharePointWebUrl,
     storedFilePath: input.storedFilePath ?? current.storedFilePath,
     effectiveAt: input.effectiveAt ?? current.effectiveAt,
     archivedAt: input.archivedAt ?? current.archivedAt,

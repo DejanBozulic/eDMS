@@ -92,6 +92,11 @@ export function DocumentDetailPanel({ document, isLoading, onWorkflowAction }: D
           </div>
           <p>{document.fileName ?? "Datoteka se ni nalozena."}</p>
           <span>{document.repository}</span>
+          {document.sharePointWebUrl ? (
+            <a className="download-link secondary-link" href={document.sharePointWebUrl} rel="noreferrer" target="_blank">
+              Odpri v SharePointu
+            </a>
+          ) : null}
           {document.fileName ? (
             <a className="download-link" href={document.downloadUrl}>
               <Download aria-hidden="true" />
