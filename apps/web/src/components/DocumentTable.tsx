@@ -1,32 +1,4 @@
-const documents = [
-  {
-    number: "SOP-0001",
-    title: "Postopek obvladovanja dokumentov",
-    type: "SOP",
-    owner: "Quality",
-    status: "Veljavno",
-    version: "1.0",
-    review: "06.05.2027"
-  },
-  {
-    number: "POL-0001",
-    title: "Politika dolgorocne hrambe",
-    type: "Policy",
-    owner: "Compliance",
-    status: "V pregledu",
-    version: "2.0",
-    review: "30.11.2026"
-  },
-  {
-    number: "WI-0007",
-    title: "Navodilo za podpisovanje dokumentov",
-    type: "Work instruction",
-    owner: "Operations",
-    status: "Osnutek",
-    version: "0.3",
-    review: "15.08.2026"
-  }
-];
+import { documents, statusLabels } from "../data/documents";
 
 export function DocumentTable() {
   return (
@@ -43,9 +15,13 @@ export function DocumentTable() {
               <th>Naziv</th>
               <th>Tip</th>
               <th>Lastnik</th>
+              <th>Oddelek</th>
               <th>Status</th>
               <th>Verzija</th>
+              <th>Podpis</th>
+              <th>Training</th>
               <th>Pregled</th>
+              <th>Hramba</th>
             </tr>
           </thead>
           <tbody>
@@ -55,9 +31,13 @@ export function DocumentTable() {
                 <td>{document.title}</td>
                 <td>{document.type}</td>
                 <td>{document.owner}</td>
-                <td><span className="status-pill">{document.status}</span></td>
+                <td>{document.department}</td>
+                <td><span className={`status-pill ${document.status.toLowerCase()}`}>{statusLabels[document.status]}</span></td>
                 <td>{document.version}</td>
+                <td>{document.signature}</td>
+                <td>{document.training}</td>
                 <td>{document.review}</td>
+                <td>{document.retention}</td>
               </tr>
             ))}
           </tbody>

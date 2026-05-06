@@ -1,6 +1,9 @@
-import { Archive, CheckCircle2, FileSignature, Files, Search, ShieldCheck, UploadCloud } from "lucide-react";
+import { Archive, CheckCircle2, ClipboardList, FileSignature, Files, Search, ShieldCheck, UploadCloud } from "lucide-react";
+import { CreateDocumentPanel } from "./components/CreateDocumentPanel";
 import { DocumentTable } from "./components/DocumentTable";
+import { LifecyclePanel } from "./components/LifecyclePanel";
 import { StatusBoard } from "./components/StatusBoard";
+import { TaskQueue } from "./components/TaskQueue";
 
 const workflow = [
   { label: "Osnutek", value: 8 },
@@ -30,6 +33,8 @@ export function App() {
         </div>
         <nav className="nav-list" aria-label="Glavna navigacija">
           <a className="active" href="#register"><Files aria-hidden="true" /> Register</a>
+          <a href="#create"><UploadCloud aria-hidden="true" /> Ustvari</a>
+          <a href="#tasks"><ClipboardList aria-hidden="true" /> Naloge</a>
           <a href="#workflow"><CheckCircle2 aria-hidden="true" /> Workflow</a>
           <a href="#signing"><FileSignature aria-hidden="true" /> Podpisi</a>
           <a href="#archive"><Archive aria-hidden="true" /> Arhiv</a>
@@ -44,7 +49,7 @@ export function App() {
           </div>
           <label className="search-box">
             <Search aria-hidden="true" />
-            <input placeholder="Iskanje po stevilki, nazivu ali lastniku" />
+            <input placeholder="Iskanje po stevilki, nazivu, metapodatkih ali vsebini" />
           </label>
         </header>
 
@@ -61,7 +66,12 @@ export function App() {
         </section>
 
         <StatusBoard items={workflow} />
+        <section className="dashboard-grid">
+          <TaskQueue />
+          <CreateDocumentPanel />
+        </section>
         <DocumentTable />
+        <LifecyclePanel />
       </section>
     </main>
   );

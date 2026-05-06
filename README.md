@@ -36,3 +36,8 @@ Frontend bo privzeto na `http://localhost:5173`, API na `http://localhost:4000`.
 4. Nastavi `.env` iz `.env.example`.
 5. Izberi podpisnega ponudnika za kvalificirane podpise, ce so zahtevani.
 6. Nastavi retention policies v Microsoft Purview ali primerljiv arhivski rezim.
+
+## Produktni nacrt
+
+- [eDMS produktni nacrt](docs/product-blueprint.md)
+- [Implementacijski roadmap](docs/implementation-roadmap.md)

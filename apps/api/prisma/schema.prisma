@@ -17,6 +17,18 @@ enum DocumentStatus {
   Archived
 }
 
+enum TrainingStatus {
+  NotRequired
+  Assigned
+  Completed
+}
+
+enum SignatureStatus {
+  NotRequired
+  Pending
+  Signed
+}
+
 enum AuditAction {
   Created
   MetadataUpdated
@@ -41,8 +53,13 @@ model Document {
   confidentiality    String         @default("Internal")
   status             DocumentStatus @default(Draft)
   version            Int            @default(1)
+  lifecycle           String         @default("Draft")
+  trainingStatus      TrainingStatus @default(NotRequired)
+  signatureStatus     SignatureStatus @default(NotRequired)
   sharePointDriveId  String?
   sharePointItemId   String?
+  sharePointPath      String?
+  searchableContent   String?
   retentionYears     Int            @default(10)
   reviewDueAt        DateTime?
   effectiveAt        DateTime?
@@ -51,6 +68,8 @@ model Document {
   updatedAt          DateTime       @updatedAt
   auditEvents        AuditEvent[]
   signatures         Signature[]
+  workflowTasks      WorkflowTask[]
+  renditions         DocumentRendition[]
 }
 
 model AuditEvent {
@@ -72,4 +91,25 @@ model Signature {
   signedVersion  Int
   signedAt       DateTime @default(now())
   document       Document @relation(fields: [documentId], references: [id])
+}
+
+model WorkflowTask {
+  id          String   @id @default(cuid())
+  documentId  String
+  taskType    String
+  assignee    String
+  status      String   @default("Open")
+  dueAt       DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  document    Document @relation(fields: [documentId], references: [id])
+}
+
+model DocumentRendition {
+  id               String   @id @default(cuid())
+  documentId       String
+  kind             String
+  sharePointItemId String?
+  createdAt        DateTime @default(now())
+  document         Document @relation(fields: [documentId], references: [id])
 }

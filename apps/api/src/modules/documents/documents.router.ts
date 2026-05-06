@@ -11,7 +11,9 @@ const createDocumentSchema = z.object({
   owner: z.string().min(2),
   department: z.string().min(2),
   confidentiality: z.string().default("Internal"),
-  retentionYears: z.number().int().min(1).max(100).default(10)
+  retentionYears: z.number().int().min(1).max(100).default(10),
+  requiresTraining: z.boolean().default(false),
+  requiresSignature: z.boolean().default(false)
 });
 
 const demoDocuments = [
@@ -24,7 +26,11 @@ const demoDocuments = [
     department: "QA",
     status: "Effective",
     version: 1,
-    reviewDueAt: "2027-05-06"
+    lifecycle: "Effective",
+    trainingStatus: "Completed",
+    signatureStatus: "Signed",
+    reviewDueAt: "2027-05-06",
+    retentionYears: 10
   },
   {
     id: "demo-pol-001",
@@ -35,7 +41,11 @@ const demoDocuments = [
     department: "Management",
     status: "InReview",
     version: 2,
-    reviewDueAt: "2026-11-30"
+    lifecycle: "Review",
+    trainingStatus: "NotRequired",
+    signatureStatus: "Pending",
+    reviewDueAt: "2026-11-30",
+    retentionYears: 30
   }
 ];
 
@@ -55,6 +65,9 @@ documentsRouter.post("/", async (req, res, next) => {
       ...payload,
       status: "Draft",
       version: 1,
+      lifecycle: "Draft",
+      trainingStatus: payload.requiresTraining ? "Assigned" : "NotRequired",
+      signatureStatus: payload.requiresSignature ? "Pending" : "NotRequired",
       sharePointTarget,
       createdAt: new Date().toISOString()
     };
