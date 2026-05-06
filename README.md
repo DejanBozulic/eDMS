@@ -1,4 +1,4 @@
-# eDMS SharePoint
+# eDMS
 
 Lasten dokumentacijski sistem za obvladovanje dokumentov, podpisovanje in dolgorocno arhiviranje, kjer aplikacija tece na gostovanju, dokumenti pa so shranjeni v SharePointu.
 

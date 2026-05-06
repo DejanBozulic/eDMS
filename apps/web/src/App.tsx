@@ -25,7 +25,7 @@ export function App() {
           <ShieldCheck aria-hidden="true" />
           <div>
             <strong>eDMS</strong>
-            <span>SharePoint</span>
+            <span>Dokumenti</span>
           </div>
         </div>
         <nav className="nav-list" aria-label="Glavna navigacija">

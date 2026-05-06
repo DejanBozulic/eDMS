@@ -5,6 +5,7 @@ build/
 .env.*
 !.env.example
 *.log
+.local-logs/
 .DS_Store
 Thumbs.db
 apps/api/prisma/dev.db

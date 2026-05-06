@@ -1,8 +1,8 @@
 {
-  "name": "edms-sharepoint",
+  "name": "edms",
   "private": true,
   "version": "0.1.0",
-  "description": "eDMS application with SharePoint document storage, workflows, signing and long-term archive readiness.",
+  "description": "eDMS application with document workflows, signing, SharePoint storage and long-term archive readiness.",
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace apps/api\" \"npm run dev --workspace apps/web\"",
     "build": "npm run build --workspace apps/api && npm run build --workspace apps/web",
