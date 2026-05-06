@@ -1,4 +1,4 @@
-﻿import { Archive, CheckCircle2, FileSignature, Files, Search, ShieldCheck, UploadCloud } from "lucide-react";
+import { Archive, CheckCircle2, FileSignature, Files, Search, ShieldCheck, UploadCloud } from "lucide-react";
 import { DocumentTable } from "./components/DocumentTable";
 import { StatusBoard } from "./components/StatusBoard";
 

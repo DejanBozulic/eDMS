@@ -1,4 +1,4 @@
-﻿# Arhitektura
+# Arhitektura
 
 Aplikacija je locena na spletni vmesnik, API in SharePoint dokumentni repozitorij.
 

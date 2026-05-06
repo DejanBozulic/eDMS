@@ -1,4 +1,4 @@
-﻿# SharePoint priprava
+# SharePoint priprava
 
 ## Predlagana struktura
 

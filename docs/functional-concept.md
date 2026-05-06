@@ -1,4 +1,4 @@
-﻿# Funkcionalni koncept
+# Funkcionalni koncept
 
 ## Dokumentni statusi
 

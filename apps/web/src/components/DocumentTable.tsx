@@ -1,4 +1,4 @@
-﻿const documents = [
+const documents = [
   {
     number: "SOP-0001",
     title: "Postopek obvladovanja dokumentov",

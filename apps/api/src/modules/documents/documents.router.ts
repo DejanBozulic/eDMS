@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import { z } from "zod";
 import { recordAuditEvent } from "../audit/audit.service.js";
 import { uploadDocumentPlaceholder } from "../sharepoint/sharepoint.service.js";

@@ -1,4 +1,4 @@
-﻿type SignatureRequest = {
+type SignatureRequest = {
   documentId: string;
   signer: string;
   version: number;

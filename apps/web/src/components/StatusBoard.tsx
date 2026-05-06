@@ -1,4 +1,4 @@
-﻿type StatusItem = {
+type StatusItem = {
   label: string;
   value: number;
 };

@@ -1,4 +1,4 @@
-﻿type AuditEventInput = {
+type AuditEventInput = {
   documentId: string;
   action: string;
   actor: string;

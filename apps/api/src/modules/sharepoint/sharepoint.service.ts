@@ -1,4 +1,4 @@
-﻿type SharePointTarget = {
+type SharePointTarget = {
   mode: "placeholder" | "graph";
   path: string;
 };
