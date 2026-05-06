@@ -7,7 +7,7 @@ import { healthRouter } from "./modules/health.router.js";
 
 const app = express();
 const port = Number(process.env.API_PORT ?? 4000);
-const webOrigin = process.env.WEB_ORIGIN ?? "http://localhost:5173";
+const webOrigin = process.env.WEB_ORIGIN ?? "http://localhost:5180";
 
 app.use(helmet());
 app.use(cors({ origin: webOrigin }));

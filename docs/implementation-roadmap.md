@@ -1,35 +1,114 @@
-# Implementacijski roadmap
+# eDMS implementacijski nacrt
 
-## Sprint 1: Core register
+Ta nacrt pripada samo projektu `D:\Projekti\eDMS`.
 
-- API vrne dokumente iz baze.
-- UI prikaze dokumente iz API.
-- Create form ustvari dokumentni zapis.
-- Audit event se zapise ob ustvarjanju dokumenta.
+GitHub repozitorij: <https://github.com/DejanBozulic/eDMS>
 
-## Sprint 2: SharePoint storage
+Lokalni razvoj:
 
-- Entra ID app registration.
-- Microsoft Graph client.
-- Upload source documenta v izbrano SharePoint knjiznico.
-- Shranjevanje `driveId`, `itemId` in `sharePointPath`.
+- frontend: `http://localhost:5180`
+- API: `http://localhost:4000`
+- mapa: `D:\Projekti\eDMS`
 
-## Sprint 3: Workflow
+## Faza 1: Interaktivni prototip
 
-- Status transition pravila.
-- Review/approval taski.
-- Zaklepanje odobrene verzije.
-- Supersede stare verzije ob novi veljavni verziji.
+Status: v teku.
 
-## Sprint 4: Search
+Vkljuceno:
 
-- Iskanje po metapodatkih.
-- Indeksiranje izvlecenega teksta.
-- Advanced filters: tip, status, lastnik, oddelek, veljavnost, rok pregleda.
+- React/Vite frontend
+- Express API
+- dokumentni register
+- iskanje po registru
+- zacetni obrazec za nov dokument
+- zacasno in-memory shranjevanje dokumentov v API procesu
+- lifecycle panel
+- naloge: review, e-podpis, Read & understood
 
-## Sprint 5: Signing & archive
+Naslednje:
 
-- Interni e-podpis z re-avtentikacijo.
-- Zunanji podpisni provider interface.
-- Archive manifest.
-- Retention pravila in export paketa.
+- urediti osnovne validacije v UI
+- dodati statusne akcije na dokumentu
+- dodati osnovni audit prikaz
+
+## Faza 2: Razvojna baza
+
+Cilj: dokumenti se shranjujejo trajno.
+
+Naloge:
+
+- izbrati PostgreSQL ali SQL Server za razvoj
+- pripraviti `.env`
+- izvesti Prisma migracijo
+- dodati Prisma client
+- zamenjati in-memory seznam z bazo
+- dodati seed podatke
+
+## Faza 3: SharePoint integracija
+
+Cilj: datoteke se hranijo v SharePoint dokumentni knjiznici.
+
+Naloge:
+
+- ustvariti Microsoft Entra ID app registration
+- nastaviti Graph API dovoljenja
+- pripraviti SharePoint site in library
+- implementirati upload dokumenta
+- shraniti `driveId`, `itemId` in `sharePointPath`
+- dodati download/view link za dokument
+
+## Faza 4: Workflow
+
+Cilj: dokument gre skozi kontroliran proces.
+
+Naloge:
+
+- Draft -> InReview
+- InReview -> Approved
+- Approved -> Signed
+- Signed -> Effective
+- Effective -> Superseded ali Archived
+- ustvarjanje nalog za pregledovalce in odobritelje
+- zaklepanje uradne verzije
+
+## Faza 5: Podpisovanje
+
+Cilj: dokument ima podpisni dogodek in dokazljivo sled.
+
+Naloge:
+
+- interni podpisni zapis
+- re-avtentikacija pred podpisom
+- podpisni namen
+- povezava podpisa z verzijo dokumenta
+- kasnejsi adapter za zunanjega podpisnega ponudnika
+
+## Faza 6: Iskanje in arhiv
+
+Cilj: dokumente je mogoce najti, pregledati in arhivirati.
+
+Naloge:
+
+- napredni filtri
+- full-text indeks po vsebini dokumentov
+- retention pravila
+- archive manifest
+- export dokumentacijskega paketa
+- Microsoft Purview retention mapping
+
+## Faza 7: Gostovanje
+
+Cilj: prenos aplikacije iz lokalnega razvoja na gostovanje.
+
+Naloge:
+
+- pripraviti produkcijski `.env`
+- nastaviti domeno in HTTPS
+- nastaviti produkcijsko bazo
+- nastaviti Entra ID redirect URI-je
+- nastaviti CI/CD iz GitHub repozitorija
+- dolociti backup in restore postopek
+
+## Locenost projekta
+
+eDMS uporablja lasten port, lasten GitHub repozitorij in lastno konfiguracijo. Lokalni frontend port za eDMS je `5180`.

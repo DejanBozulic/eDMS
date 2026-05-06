@@ -40,4 +40,11 @@ Frontend bo privzeto na `http://localhost:5180`, API na `http://localhost:4000`.
 ## Produktni nacrt
 
 - [eDMS produktni nacrt](docs/product-blueprint.md)
-- [Implementacijski roadmap](docs/implementation-roadmap.md)
+- [eDMS implementacijski nacrt](docs/implementation-roadmap.md)
+
+## Lokalni naslovi
+
+- eDMS frontend: `http://localhost:5180`
+- eDMS API: `http://localhost:4000`
+
+Port `5173` ni eDMS port.
