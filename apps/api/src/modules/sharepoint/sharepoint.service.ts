@@ -3,11 +3,23 @@ type SharePointTarget = {
   path: string;
 };
 
+export type EdmsStorageFolder = "Drafts" | "In Review" | "Effective" | "Archive" | "Validation";
+
 export async function uploadDocumentPlaceholder(
   documentNumber: string,
   title: string,
-  extension = ".pdf"
+  extension = ".pdf",
+  folder: EdmsStorageFolder = "Drafts"
 ): Promise<SharePointTarget> {
+  return buildSharePointPlaceholderPath(documentNumber, title, extension, folder);
+}
+
+export function buildSharePointPlaceholderPath(
+  documentNumber: string,
+  title: string,
+  extension = ".pdf",
+  folder: EdmsStorageFolder = "Drafts"
+): SharePointTarget {
   const libraryPath = normalizeFolderPath(
     process.env.GRAPH_DOCUMENT_LIBRARY_PATH ?? "CTRL-ING d.o.o\\INZENIRING - Dokumenti\\#eDMS"
   );
@@ -16,7 +28,7 @@ export async function uploadDocumentPlaceholder(
   // TODO: Replace with Microsoft Graph upload once Entra ID and SharePoint IDs are configured.
   return {
     mode: "placeholder",
-    path: `${libraryPath}\\Drafts\\${fileName}`
+    path: `${libraryPath}\\${folder}\\${fileName}`
   };
 }
 

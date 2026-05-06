@@ -1,9 +1,9 @@
-import { copyFileSync, existsSync, mkdirSync, statSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, renameSync, statSync } from "node:fs";
 import { basename, extname, join, resolve } from "node:path";
 import { Router } from "express";
 import { z } from "zod";
 import { countDocumentsByType, createAuditEvent, createDocument, getDocument, listAuditEvents, listDocuments, updateDocumentWorkflow } from "../../db.js";
-import { uploadDocumentPlaceholder } from "../sharepoint/sharepoint.service.js";
+import { buildSharePointPlaceholderPath, type EdmsStorageFolder, uploadDocumentPlaceholder } from "../sharepoint/sharepoint.service.js";
 
 export const documentsRouter = Router();
 
@@ -44,6 +44,7 @@ type WorkflowTransition = {
   signatureStatus?: string;
   auditAction: string;
   timestampField?: "effectiveAt" | "archivedAt";
+  storageFolder?: EdmsStorageFolder;
 };
 
 const workflowTransitions: Record<WorkflowAction, WorkflowTransition> = {
@@ -51,7 +52,8 @@ const workflowTransitions: Record<WorkflowAction, WorkflowTransition> = {
     from: ["Draft"],
     status: "InReview",
     lifecycle: "Review",
-    auditAction: "SubmittedForReview"
+    auditAction: "SubmittedForReview",
+    storageFolder: "In Review"
   },
   approve: {
     from: ["InReview"],
@@ -71,14 +73,16 @@ const workflowTransitions: Record<WorkflowAction, WorkflowTransition> = {
     status: "Effective",
     lifecycle: "Effective",
     auditAction: "Published",
-    timestampField: "effectiveAt"
+    timestampField: "effectiveAt",
+    storageFolder: "Effective"
   },
   archive: {
     from: ["Effective"],
     status: "Archived",
     lifecycle: "Archived",
     auditAction: "Archived",
-    timestampField: "archivedAt"
+    timestampField: "archivedAt",
+    storageFolder: "Archive"
   }
 };
 
@@ -153,12 +157,23 @@ documentsRouter.post("/:id/workflow", async (req, res, next) => {
     }
 
     const now = new Date().toISOString();
+    const movedFile = moveStoredFileForTransition(document, transition.storageFolder);
+    const sharePointTarget = transition.storageFolder
+      ? buildSharePointPlaceholderPath(
+        document.documentNumber,
+        document.title,
+        document.fileName ? extname(document.fileName) : ".pdf",
+        transition.storageFolder
+      )
+      : null;
     const updated = updateDocumentWorkflow(document.id, {
       status: transition.status,
       lifecycle: transition.lifecycle,
       signatureStatus: "signatureStatus" in transition ? transition.signatureStatus : undefined,
       effectiveAt: transition.timestampField === "effectiveAt" ? now : undefined,
-      archivedAt: transition.timestampField === "archivedAt" ? now : undefined
+      archivedAt: transition.timestampField === "archivedAt" ? now : undefined,
+      storedFilePath: movedFile?.storedFilePath,
+      sharePointPath: sharePointTarget?.path
     });
 
     createAuditEvent({
@@ -168,7 +183,11 @@ documentsRouter.post("/:id/workflow", async (req, res, next) => {
       details: JSON.stringify({
         from: document.status,
         to: transition.status,
-        action: payload.action
+        action: payload.action,
+        storageFolder: transition.storageFolder,
+        previousStoredFilePath: movedFile?.previousStoredFilePath,
+        storedFilePath: movedFile?.storedFilePath,
+        sharePointPath: sharePointTarget?.path
       })
     });
 
@@ -340,4 +359,31 @@ function mimeTypeForExtension(extension: string): string {
     default:
       return "application/octet-stream";
   }
+}
+
+function moveStoredFileForTransition(
+  document: NonNullable<ReturnType<typeof getDocument>>,
+  storageFolder?: EdmsStorageFolder
+): { previousStoredFilePath: string; storedFilePath: string } | null {
+  if (!storageFolder || !document.storedFilePath || !existsSync(document.storedFilePath)) {
+    return null;
+  }
+
+  const targetFolder = resolve(process.cwd(), "uploads", storageFolder);
+  const targetPath = join(targetFolder, basename(document.storedFilePath));
+
+  if (document.storedFilePath === targetPath) {
+    return {
+      previousStoredFilePath: document.storedFilePath,
+      storedFilePath: targetPath
+    };
+  }
+
+  mkdirSync(targetFolder, { recursive: true });
+  renameSync(document.storedFilePath, targetPath);
+
+  return {
+    previousStoredFilePath: document.storedFilePath,
+    storedFilePath: targetPath
+  };
 }

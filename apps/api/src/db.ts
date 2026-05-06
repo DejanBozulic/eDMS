@@ -66,6 +66,8 @@ type UpdateDocumentWorkflowInput = {
   signatureStatus?: string;
   effectiveAt?: string | null;
   archivedAt?: string | null;
+  sharePointPath?: string | null;
+  storedFilePath?: string | null;
 };
 
 const databasePath = resolve(process.cwd(), "data", "edms.sqlite");
@@ -212,6 +214,8 @@ export function updateDocumentWorkflow(id: string, input: UpdateDocumentWorkflow
       status = @status,
       lifecycle = @lifecycle,
       signatureStatus = @signatureStatus,
+      sharePointPath = @sharePointPath,
+      storedFilePath = @storedFilePath,
       effectiveAt = @effectiveAt,
       archivedAt = @archivedAt,
       updatedAt = @updatedAt
@@ -221,6 +225,8 @@ export function updateDocumentWorkflow(id: string, input: UpdateDocumentWorkflow
     status: input.status,
     lifecycle: input.lifecycle,
     signatureStatus: input.signatureStatus ?? current.signatureStatus,
+    sharePointPath: input.sharePointPath ?? current.sharePointPath,
+    storedFilePath: input.storedFilePath ?? current.storedFilePath,
     effectiveAt: input.effectiveAt ?? current.effectiveAt,
     archivedAt: input.archivedAt ?? current.archivedAt,
     updatedAt: new Date().toISOString()
