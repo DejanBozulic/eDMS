@@ -33,16 +33,17 @@ Naslednje:
 
 ## Faza 2: Razvojna baza
 
-Cilj: dokumenti se shranjujejo trajno.
+Status: zacetna lokalna SQLite baza je vkljucena.
+
+Cilj: dokumenti se shranjujejo trajno tudi po restartu API-ja.
 
 Naloge:
 
-- izbrati PostgreSQL ali SQL Server za razvoj
-- pripraviti `.env`
-- izvesti Prisma migracijo
-- dodati Prisma client
-- zamenjati in-memory seznam z bazo
-- dodati seed podatke
+- SQLite baza je v `apps/api/data/edms.sqlite`
+- API `GET /documents` bere iz SQLite baze
+- API `POST /documents` zapisuje v SQLite bazo
+- audit event se zapise ob ustvarjanju dokumenta
+- kasneje se model lahko prenese na PostgreSQL ali SQL Server
 
 ## Faza 3: SharePoint integracija
 

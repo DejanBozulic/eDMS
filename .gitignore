@@ -9,4 +9,5 @@ build/
 .DS_Store
 Thumbs.db
 apps/api/prisma/dev.db
+apps/api/data/
 *.tsbuildinfo

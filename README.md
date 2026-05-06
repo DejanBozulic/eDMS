@@ -17,7 +17,7 @@ Lasten dokumentacijski sistem za obvladovanje dokumentov, podpisovanje in dolgor
 - `apps/api`: Node.js + Express + TypeScript + Prisma
 - `SharePoint`: dokumentni repozitorij preko Microsoft Graph
 - `Microsoft Entra ID`: prijava in avtorizacija
-- `PostgreSQL` ali `SQL Server`: aplikacijska baza
+- `SQLite`: lokalna razvojna baza za prvi prototip
 
 ## Lokalni zagon
 
@@ -27,6 +27,8 @@ npm run dev
 ```
 
 Frontend bo privzeto na `http://localhost:5180`, API na `http://localhost:4000`.
+
+SQLite baza se za lokalni razvoj ustvari v `apps/api/data/edms.sqlite`.
 
 ## Naslednji produkcijski koraki
 

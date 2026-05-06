@@ -18,6 +18,7 @@ app.get("/", (_req, res) => {
   res.json({
     service: "eDMS API",
     status: "ok",
+    database: "sqlite",
     frontend: webOrigin,
     endpoints: {
       health: "/health",

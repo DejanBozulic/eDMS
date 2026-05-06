@@ -14,6 +14,7 @@ type ApiDocument = {
   signatureStatus: "NotRequired" | "Pending" | "Signed";
   reviewDueAt?: string;
   retentionYears: number;
+  sharePointPath?: string | null;
   sharePointTarget?: {
     path: string;
   };
@@ -89,7 +90,7 @@ function mapApiDocument(document: ApiDocument): EdmsDocument {
     retention: `${document.retentionYears} let`,
     training: trainingLabels[document.trainingStatus],
     signature: signatureLabels[document.signatureStatus],
-    repository: document.sharePointTarget?.path ?? "SharePoint / eDMS Documents"
+    repository: document.sharePointPath ?? document.sharePointTarget?.path ?? "SharePoint / eDMS Documents"
   };
 }
 

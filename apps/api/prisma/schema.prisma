@@ -3,44 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
-}
-
-enum DocumentStatus {
-  Draft
-  InReview
-  Approved
-  Signed
-  Effective
-  Superseded
-  Archived
-}
-
-enum TrainingStatus {
-  NotRequired
-  Assigned
-  Completed
-}
-
-enum SignatureStatus {
-  NotRequired
-  Pending
-  Signed
-}
-
-enum AuditAction {
-  Created
-  MetadataUpdated
-  FileUploaded
-  SubmittedForReview
-  ReviewCompleted
-  Approved
-  Signed
-  Published
-  Archived
-  Downloaded
-  Viewed
 }
 
 model Document {
@@ -51,11 +15,11 @@ model Document {
   owner              String
   department         String
   confidentiality    String         @default("Internal")
-  status             DocumentStatus @default(Draft)
+  status             String         @default("Draft")
   version            Int            @default(1)
   lifecycle           String         @default("Draft")
-  trainingStatus      TrainingStatus @default(NotRequired)
-  signatureStatus     SignatureStatus @default(NotRequired)
+  trainingStatus      String         @default("NotRequired")
+  signatureStatus     String         @default("NotRequired")
   sharePointDriveId  String?
   sharePointItemId   String?
   sharePointPath      String?
@@ -75,9 +39,9 @@ model Document {
 model AuditEvent {
   id          String      @id @default(cuid())
   documentId  String
-  action      AuditAction
+  action      String
   actor       String
-  details     Json?
+  details     String?
   createdAt   DateTime    @default(now())
   document    Document    @relation(fields: [documentId], references: [id])
 }

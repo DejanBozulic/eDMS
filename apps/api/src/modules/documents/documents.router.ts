@@ -1,31 +1,9 @@
 import { Router } from "express";
 import { z } from "zod";
-import { recordAuditEvent } from "../audit/audit.service.js";
+import { countDocumentsByType, createAuditEvent, createDocument, listDocuments } from "../../db.js";
 import { uploadDocumentPlaceholder } from "../sharepoint/sharepoint.service.js";
 
 export const documentsRouter = Router();
-
-type DemoDocument = {
-  id: string;
-  documentNumber: string;
-  title: string;
-  type: string;
-  owner: string;
-  department: string;
-  confidentiality?: string;
-  retentionYears: number;
-  status: "Draft" | "InReview" | "Approved" | "Signed" | "Effective" | "Superseded" | "Archived";
-  version: number;
-  lifecycle: string;
-  trainingStatus: "NotRequired" | "Assigned" | "Completed";
-  signatureStatus: "NotRequired" | "Pending" | "Signed";
-  reviewDueAt: string | null;
-  sharePointTarget?: {
-    mode: "placeholder" | "graph";
-    path: string;
-  };
-  createdAt?: string;
-};
 
 const createDocumentSchema = z.object({
   title: z.string().min(2),
@@ -38,51 +16,21 @@ const createDocumentSchema = z.object({
   requiresSignature: z.boolean().default(false)
 });
 
-const demoDocuments: DemoDocument[] = [
-  {
-    id: "demo-sop-001",
-    documentNumber: "SOP-0001",
-    title: "Postopek obvladovanja dokumentov",
-    type: "SOP",
-    owner: "Quality",
-    department: "QA",
-    status: "Effective",
-    version: 1,
-    lifecycle: "Effective",
-    trainingStatus: "Completed",
-    signatureStatus: "Signed",
-    reviewDueAt: "2027-05-06",
-    retentionYears: 10
-  },
-  {
-    id: "demo-pol-001",
-    documentNumber: "POL-0001",
-    title: "Politika dolgorocne hrambe",
-    type: "Policy",
-    owner: "Compliance",
-    department: "Management",
-    status: "InReview",
-    version: 2,
-    lifecycle: "Review",
-    trainingStatus: "NotRequired",
-    signatureStatus: "Pending",
-    reviewDueAt: "2026-11-30",
-    retentionYears: 30
+documentsRouter.get("/", async (_req, res, next) => {
+  try {
+    res.json({ data: listDocuments() });
+  } catch (error) {
+    next(error);
   }
-];
-
-documentsRouter.get("/", (_req, res) => {
-  res.json({ data: demoDocuments });
 });
 
 documentsRouter.post("/", async (req, res, next) => {
   try {
     const payload = createDocumentSchema.parse(req.body);
-    const documentNumber = `${payload.type.toUpperCase()}-${String(Date.now()).slice(-6)}`;
+    const documentNumber = await nextDocumentNumber(payload.type);
     const sharePointTarget = await uploadDocumentPlaceholder(documentNumber, payload.title);
 
-    const document: DemoDocument = {
-      id: crypto.randomUUID(),
+    const document = createDocument({
       documentNumber,
       title: payload.title,
       type: payload.type,
@@ -95,18 +43,23 @@ documentsRouter.post("/", async (req, res, next) => {
       lifecycle: "Draft",
       trainingStatus: payload.requiresTraining ? "Assigned" : "NotRequired",
       signatureStatus: payload.requiresSignature ? "Pending" : "NotRequired",
+      sharePointDriveId: process.env.GRAPH_DRIVE_ID ?? null,
+      sharePointItemId: null,
+      sharePointPath: sharePointTarget.path,
+      searchableContent: null,
       reviewDueAt: null,
-      sharePointTarget,
-      createdAt: new Date().toISOString()
-    };
+      effectiveAt: null,
+      archivedAt: null
+    });
 
-    demoDocuments.unshift(document);
-
-    await recordAuditEvent({
+    createAuditEvent({
       documentId: document.id,
       action: "Created",
       actor: payload.owner,
-      details: { documentNumber, sharePointTarget }
+      details: JSON.stringify({
+        documentNumber,
+        sharePointTarget
+      })
     });
 
     res.status(201).json({ data: document });
@@ -114,3 +67,15 @@ documentsRouter.post("/", async (req, res, next) => {
     next(error);
   }
 });
+
+async function nextDocumentNumber(type: string): Promise<string> {
+  const prefix = type
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 12);
+
+  const count = countDocumentsByType(type);
+
+  return `${prefix || "DOC"}-${String(count + 1).padStart(4, "0")}`;
+}
