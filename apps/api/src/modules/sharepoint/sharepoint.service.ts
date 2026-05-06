@@ -3,17 +3,29 @@ type SharePointTarget = {
   path: string;
 };
 
-export async function uploadDocumentPlaceholder(documentNumber: string, title: string): Promise<SharePointTarget> {
+export async function uploadDocumentPlaceholder(
+  documentNumber: string,
+  title: string,
+  extension = ".pdf"
+): Promise<SharePointTarget> {
   const libraryPath = normalizeFolderPath(
     process.env.GRAPH_DOCUMENT_LIBRARY_PATH ?? "CTRL-ING d.o.o\\INZENIRING - Dokumenti\\#eDMS"
   );
-  const fileName = `${documentNumber}-${sanitizeFileName(title)}.pdf`;
+  const fileName = `${documentNumber}-${sanitizeFileName(title)}${normalizeExtension(extension)}`;
 
   // TODO: Replace with Microsoft Graph upload once Entra ID and SharePoint IDs are configured.
   return {
     mode: "placeholder",
     path: `${libraryPath}\\Drafts\\${fileName}`
   };
+}
+
+function normalizeExtension(value: string): string {
+  if (!value) {
+    return ".pdf";
+  }
+
+  return value.startsWith(".") ? value : `.${value}`;
 }
 
 function sanitizeFileName(value: string): string {

@@ -10,4 +10,5 @@ build/
 Thumbs.db
 apps/api/prisma/dev.db
 apps/api/data/
+apps/api/uploads/
 *.tsbuildinfo

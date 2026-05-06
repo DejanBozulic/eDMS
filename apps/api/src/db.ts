@@ -23,12 +23,25 @@ export type DocumentRow = {
   reviewDueAt: string | null;
   effectiveAt: string | null;
   archivedAt: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  mimeType: string | null;
+  sourceFilePath: string | null;
+  storedFilePath: string | null;
   createdAt: string;
   updatedAt: string;
 };
 
-type CreateDocumentInput = Omit<DocumentRow, "id" | "createdAt" | "updatedAt"> & {
+type CreateDocumentInput = Omit<
+  DocumentRow,
+  "id" | "createdAt" | "updatedAt" | "fileName" | "fileSize" | "mimeType" | "sourceFilePath" | "storedFilePath"
+> & {
   id?: string;
+  fileName?: string | null;
+  fileSize?: number | null;
+  mimeType?: string | null;
+  sourceFilePath?: string | null;
+  storedFilePath?: string | null;
 };
 
 type AuditEventInput = {
@@ -96,6 +109,12 @@ database.exec(`
   );
 `);
 
+ensureDocumentColumn("fileName", "TEXT");
+ensureDocumentColumn("fileSize", "INTEGER");
+ensureDocumentColumn("mimeType", "TEXT");
+ensureDocumentColumn("sourceFilePath", "TEXT");
+ensureDocumentColumn("storedFilePath", "TEXT");
+
 seedDocuments();
 
 export function listDocuments(): DocumentRow[] {
@@ -112,6 +131,11 @@ export function createDocument(input: CreateDocumentInput): DocumentRow {
   const document: DocumentRow = {
     ...input,
     id: input.id ?? crypto.randomUUID(),
+    fileName: input.fileName ?? null,
+    fileSize: input.fileSize ?? null,
+    mimeType: input.mimeType ?? null,
+    sourceFilePath: input.sourceFilePath ?? null,
+    storedFilePath: input.storedFilePath ?? null,
     createdAt: now,
     updatedAt: now
   };
@@ -121,12 +145,14 @@ export function createDocument(input: CreateDocumentInput): DocumentRow {
       id, documentNumber, title, type, owner, department, confidentiality, status, version,
       lifecycle, trainingStatus, signatureStatus, sharePointDriveId, sharePointItemId,
       sharePointPath, searchableContent, retentionYears, reviewDueAt, effectiveAt, archivedAt,
+      fileName, fileSize, mimeType, sourceFilePath, storedFilePath,
       createdAt, updatedAt
     )
     VALUES (
       @id, @documentNumber, @title, @type, @owner, @department, @confidentiality, @status, @version,
       @lifecycle, @trainingStatus, @signatureStatus, @sharePointDriveId, @sharePointItemId,
       @sharePointPath, @searchableContent, @retentionYears, @reviewDueAt, @effectiveAt, @archivedAt,
+      @fileName, @fileSize, @mimeType, @sourceFilePath, @storedFilePath,
       @createdAt, @updatedAt
     )
   `).run(document);
@@ -146,6 +172,14 @@ export function createAuditEvent(input: AuditEventInput): void {
     details: input.details ?? null,
     createdAt: new Date().toISOString()
   });
+}
+
+function ensureDocumentColumn(name: string, definition: string) {
+  const columns = database.prepare("PRAGMA table_info(documents)").all() as Array<{ name: string }>;
+
+  if (!columns.some((column) => column.name === name)) {
+    database.exec(`ALTER TABLE documents ADD COLUMN ${name} ${definition}`);
+  }
 }
 
 function seedDocuments() {
