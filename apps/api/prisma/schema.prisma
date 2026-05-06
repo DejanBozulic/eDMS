@@ -1,0 +1,75 @@
+﻿generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DocumentStatus {
+  Draft
+  InReview
+  Approved
+  Signed
+  Effective
+  Superseded
+  Archived
+}
+
+enum AuditAction {
+  Created
+  MetadataUpdated
+  FileUploaded
+  SubmittedForReview
+  ReviewCompleted
+  Approved
+  Signed
+  Published
+  Archived
+  Downloaded
+  Viewed
+}
+
+model Document {
+  id                 String         @id @default(cuid())
+  documentNumber     String         @unique
+  title              String
+  type               String
+  owner              String
+  department         String
+  confidentiality    String         @default("Internal")
+  status             DocumentStatus @default(Draft)
+  version            Int            @default(1)
+  sharePointDriveId  String?
+  sharePointItemId   String?
+  retentionYears     Int            @default(10)
+  reviewDueAt        DateTime?
+  effectiveAt        DateTime?
+  archivedAt         DateTime?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  auditEvents        AuditEvent[]
+  signatures         Signature[]
+}
+
+model AuditEvent {
+  id          String      @id @default(cuid())
+  documentId  String
+  action      AuditAction
+  actor       String
+  details     Json?
+  createdAt   DateTime    @default(now())
+  document    Document    @relation(fields: [documentId], references: [id])
+}
+
+model Signature {
+  id             String   @id @default(cuid())
+  documentId     String
+  signer         String
+  provider       String
+  signatureRef   String?
+  signedVersion  Int
+  signedAt       DateTime @default(now())
+  document       Document @relation(fields: [documentId], references: [id])
+}
