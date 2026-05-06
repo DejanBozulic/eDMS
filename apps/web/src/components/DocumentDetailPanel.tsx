@@ -1,12 +1,26 @@
-import { Download, FileText, History } from "lucide-react";
-import type { DocumentDetail } from "../lib/documentsApi";
+import { Archive, CheckCircle2, Download, FileSignature, FileText, History, Send } from "lucide-react";
+import type { DocumentDetail, WorkflowAction } from "../lib/documentsApi";
 
 type DocumentDetailPanelProps = {
   document: DocumentDetail | null;
   isLoading: boolean;
+  onWorkflowAction: (action: WorkflowAction) => Promise<void>;
 };
 
-export function DocumentDetailPanel({ document, isLoading }: DocumentDetailPanelProps) {
+const workflowActions: Array<{
+  action: WorkflowAction;
+  label: string;
+  allowedStatus: string;
+  icon: typeof Send;
+}> = [
+  { action: "submit-review", label: "Poslji v pregled", allowedStatus: "Draft", icon: Send },
+  { action: "approve", label: "Odobri", allowedStatus: "InReview", icon: CheckCircle2 },
+  { action: "sign", label: "Podpisi", allowedStatus: "Approved", icon: FileSignature },
+  { action: "publish", label: "Objavi", allowedStatus: "Signed", icon: CheckCircle2 },
+  { action: "archive", label: "Arhiviraj", allowedStatus: "Effective", icon: Archive }
+];
+
+export function DocumentDetailPanel({ document, isLoading, onWorkflowAction }: DocumentDetailPanelProps) {
   if (isLoading) {
     return (
       <section className="document-detail">
@@ -41,6 +55,33 @@ export function DocumentDetailPanel({ document, isLoading }: DocumentDetailPanel
       </dl>
 
       <div className="detail-grid">
+        <article className="workflow-panel">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Workflow</p>
+              <h2>Akcije</h2>
+            </div>
+          </div>
+          <div className="workflow-actions">
+            {workflowActions.map((item) => {
+              const Icon = item.icon;
+              const isAllowed = document.status === item.allowedStatus;
+
+              return (
+                <button
+                  disabled={!isAllowed}
+                  key={item.action}
+                  onClick={() => void onWorkflowAction(item.action)}
+                  type="button"
+                >
+                  <Icon aria-hidden="true" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        </article>
+
         <article className="file-panel">
           <div className="section-heading">
             <div>

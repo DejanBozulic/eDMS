@@ -459,12 +459,13 @@ th {
 
 .detail-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+  grid-template-columns: minmax(220px, 0.75fr) minmax(280px, 1fr) minmax(320px, 1.15fr);
   gap: 16px;
 }
 
 .file-panel,
-.audit-panel {
+.audit-panel,
+.workflow-panel {
   display: grid;
   align-content: start;
   gap: 12px;
@@ -503,6 +504,29 @@ th {
 
 .download-link:hover {
   background: #16464f;
+}
+
+.workflow-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.workflow-actions button {
+  min-height: 40px;
+  border: 1px solid #c9d6da;
+  background: #ffffff;
+  color: #172126;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  padding: 0 12px;
+}
+
+.workflow-actions button:not(:disabled):hover {
+  border-color: #1b7f75;
+  color: #0f665e;
 }
 
 .audit-list {

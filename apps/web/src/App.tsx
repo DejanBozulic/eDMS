@@ -7,7 +7,7 @@ import { LifecyclePanel } from "./components/LifecyclePanel";
 import { StatusBoard } from "./components/StatusBoard";
 import { TaskQueue } from "./components/TaskQueue";
 import type { EdmsDocument } from "./data/documents";
-import { createDocument, fetchDocumentDetail, fetchDocuments, type CreateDocumentPayload, type DocumentDetail } from "./lib/documentsApi";
+import { createDocument, fetchDocumentDetail, fetchDocuments, runWorkflowAction, type CreateDocumentPayload, type DocumentDetail, type WorkflowAction } from "./lib/documentsApi";
 
 const workflow = [
   { label: "Osnutek", value: 8 },
@@ -86,6 +86,18 @@ export function App() {
     setMessage(`Ustvarjen dokument ${document.number}`);
   }
 
+  async function handleWorkflowAction(action: WorkflowAction) {
+    if (!documentDetail) {
+      return;
+    }
+
+    setMessage("Izvajam workflow akcijo ...");
+    const updated = await runWorkflowAction(documentDetail.id, action);
+    setDocumentDetail(updated);
+    setDocuments((current) => current.map((document) => document.id === updated.id ? updated : document));
+    setMessage(`${updated.number}: status je ${updated.lifecycle}`);
+  }
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -145,7 +157,11 @@ export function App() {
           onSelectDocument={setSelectedDocumentId}
           selectedDocumentId={selectedDocument?.id}
         />
-        <DocumentDetailPanel document={documentDetail} isLoading={isDetailLoading} />
+        <DocumentDetailPanel
+          document={documentDetail}
+          isLoading={isDetailLoading}
+          onWorkflowAction={handleWorkflowAction}
+        />
         <LifecyclePanel />
       </section>
     </main>

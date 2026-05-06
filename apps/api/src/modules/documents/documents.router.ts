@@ -2,7 +2,7 @@ import { copyFileSync, existsSync, mkdirSync, statSync } from "node:fs";
 import { basename, extname, join, resolve } from "node:path";
 import { Router } from "express";
 import { z } from "zod";
-import { countDocumentsByType, createAuditEvent, createDocument, getDocument, listAuditEvents, listDocuments } from "../../db.js";
+import { countDocumentsByType, createAuditEvent, createDocument, getDocument, listAuditEvents, listDocuments, updateDocumentWorkflow } from "../../db.js";
 import { uploadDocumentPlaceholder } from "../sharepoint/sharepoint.service.js";
 
 export const documentsRouter = Router();
@@ -29,6 +29,58 @@ const importLocalDocumentSchema = z.object({
   requiresTraining: z.boolean().default(false),
   requiresSignature: z.boolean().default(true)
 });
+
+const workflowActionSchema = z.object({
+  action: z.enum(["submit-review", "approve", "sign", "publish", "archive"]),
+  actor: z.string().min(1).default("System")
+});
+
+type WorkflowAction = z.infer<typeof workflowActionSchema>["action"];
+
+type WorkflowTransition = {
+  from: string[];
+  status: string;
+  lifecycle: string;
+  signatureStatus?: string;
+  auditAction: string;
+  timestampField?: "effectiveAt" | "archivedAt";
+};
+
+const workflowTransitions: Record<WorkflowAction, WorkflowTransition> = {
+  "submit-review": {
+    from: ["Draft"],
+    status: "InReview",
+    lifecycle: "Review",
+    auditAction: "SubmittedForReview"
+  },
+  approve: {
+    from: ["InReview"],
+    status: "Approved",
+    lifecycle: "Approved",
+    auditAction: "Approved"
+  },
+  sign: {
+    from: ["Approved"],
+    status: "Signed",
+    lifecycle: "Signed",
+    signatureStatus: "Signed",
+    auditAction: "Signed"
+  },
+  publish: {
+    from: ["Signed"],
+    status: "Effective",
+    lifecycle: "Effective",
+    auditAction: "Published",
+    timestampField: "effectiveAt"
+  },
+  archive: {
+    from: ["Effective"],
+    status: "Archived",
+    lifecycle: "Archived",
+    auditAction: "Archived",
+    timestampField: "archivedAt"
+  }
+};
 
 documentsRouter.get("/", async (_req, res, next) => {
   try {
@@ -73,6 +125,59 @@ documentsRouter.get("/:id/download", async (req, res, next) => {
     }
 
     res.download(document.storedFilePath, document.fileName ?? basename(document.storedFilePath));
+  } catch (error) {
+    next(error);
+  }
+});
+
+documentsRouter.post("/:id/workflow", async (req, res, next) => {
+  try {
+    const payload = workflowActionSchema.parse(req.body);
+    const document = getDocument(req.params.id);
+
+    if (!document) {
+      res.status(404).json({ error: "Document not found" });
+      return;
+    }
+
+    const transition = workflowTransitions[payload.action];
+
+    if (!transition.from.includes(document.status)) {
+      res.status(409).json({
+        error: "Workflow transition is not allowed",
+        currentStatus: document.status,
+        action: payload.action,
+        allowedFrom: transition.from
+      });
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const updated = updateDocumentWorkflow(document.id, {
+      status: transition.status,
+      lifecycle: transition.lifecycle,
+      signatureStatus: "signatureStatus" in transition ? transition.signatureStatus : undefined,
+      effectiveAt: transition.timestampField === "effectiveAt" ? now : undefined,
+      archivedAt: transition.timestampField === "archivedAt" ? now : undefined
+    });
+
+    createAuditEvent({
+      documentId: document.id,
+      action: transition.auditAction,
+      actor: payload.actor,
+      details: JSON.stringify({
+        from: document.status,
+        to: transition.status,
+        action: payload.action
+      })
+    });
+
+    res.json({
+      data: {
+        ...updated,
+        auditEvents: listAuditEvents(document.id)
+      }
+    });
   } catch (error) {
     next(error);
   }

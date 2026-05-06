@@ -60,6 +60,14 @@ type AuditEventInput = {
   details?: string;
 };
 
+type UpdateDocumentWorkflowInput = {
+  status: string;
+  lifecycle: string;
+  signatureStatus?: string;
+  effectiveAt?: string | null;
+  archivedAt?: string | null;
+};
+
 const databasePath = resolve(process.cwd(), "data", "edms.sqlite");
 const databaseDir = dirname(databasePath);
 
@@ -189,6 +197,36 @@ export function createAuditEvent(input: AuditEventInput): void {
     details: input.details ?? null,
     createdAt: new Date().toISOString()
   });
+}
+
+export function updateDocumentWorkflow(id: string, input: UpdateDocumentWorkflowInput): DocumentRow | null {
+  const current = getDocument(id);
+
+  if (!current) {
+    return null;
+  }
+
+  database.prepare(`
+    UPDATE documents
+    SET
+      status = @status,
+      lifecycle = @lifecycle,
+      signatureStatus = @signatureStatus,
+      effectiveAt = @effectiveAt,
+      archivedAt = @archivedAt,
+      updatedAt = @updatedAt
+    WHERE id = @id
+  `).run({
+    id,
+    status: input.status,
+    lifecycle: input.lifecycle,
+    signatureStatus: input.signatureStatus ?? current.signatureStatus,
+    effectiveAt: input.effectiveAt ?? current.effectiveAt,
+    archivedAt: input.archivedAt ?? current.archivedAt,
+    updatedAt: new Date().toISOString()
+  });
+
+  return getDocument(id);
 }
 
 function ensureDocumentColumn(name: string, definition: string) {

@@ -35,6 +35,8 @@ export type AuditEvent = {
   createdAt: string;
 };
 
+export type WorkflowAction = "submit-review" | "approve" | "sign" | "publish" | "archive";
+
 export type CreateDocumentPayload = {
   title: string;
   type: string;
@@ -105,6 +107,35 @@ export async function fetchDocumentDetail(documentId: string): Promise<DocumentD
 
   if (!response.ok) {
     throw new Error("Podrobnosti dokumenta ni bilo mogoce naloziti.");
+  }
+
+  const payload = await response.json() as ApiResponse<ApiDocument>;
+  const document = mapApiDocument(payload.data);
+
+  return {
+    ...document,
+    fileName: payload.data.fileName,
+    fileSize: payload.data.fileSize,
+    mimeType: payload.data.mimeType,
+    sourceFilePath: payload.data.sourceFilePath,
+    storedFilePath: payload.data.storedFilePath,
+    auditEvents: payload.data.auditEvents ?? [],
+    downloadUrl: `/api/documents/${documentId}/download`
+  };
+}
+
+export async function runWorkflowAction(documentId: string, action: WorkflowAction, actor = "Dejan"): Promise<DocumentDetail> {
+  const response = await fetch(`/api/documents/${documentId}/workflow`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ action, actor })
+  });
+
+  if (!response.ok) {
+    const result = await response.json().catch(() => null) as { error?: string } | null;
+    throw new Error(result?.error ?? "Workflow akcije ni bilo mogoce izvesti.");
   }
 
   const payload = await response.json() as ApiResponse<ApiDocument>;
