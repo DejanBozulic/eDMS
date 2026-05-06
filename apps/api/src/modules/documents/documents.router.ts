@@ -2,7 +2,7 @@ import { copyFileSync, existsSync, mkdirSync, statSync } from "node:fs";
 import { basename, extname, join, resolve } from "node:path";
 import { Router } from "express";
 import { z } from "zod";
-import { countDocumentsByType, createAuditEvent, createDocument, listDocuments } from "../../db.js";
+import { countDocumentsByType, createAuditEvent, createDocument, getDocument, listAuditEvents, listDocuments } from "../../db.js";
 import { uploadDocumentPlaceholder } from "../sharepoint/sharepoint.service.js";
 
 export const documentsRouter = Router();
@@ -33,6 +33,46 @@ const importLocalDocumentSchema = z.object({
 documentsRouter.get("/", async (_req, res, next) => {
   try {
     res.json({ data: listDocuments() });
+  } catch (error) {
+    next(error);
+  }
+});
+
+documentsRouter.get("/:id", async (req, res, next) => {
+  try {
+    const document = getDocument(req.params.id);
+
+    if (!document) {
+      res.status(404).json({ error: "Document not found" });
+      return;
+    }
+
+    res.json({
+      data: {
+        ...document,
+        auditEvents: listAuditEvents(document.id)
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+documentsRouter.get("/:id/download", async (req, res, next) => {
+  try {
+    const document = getDocument(req.params.id);
+
+    if (!document) {
+      res.status(404).json({ error: "Document not found" });
+      return;
+    }
+
+    if (!document.storedFilePath || !existsSync(document.storedFilePath)) {
+      res.status(404).json({ error: "Stored file not found" });
+      return;
+    }
+
+    res.download(document.storedFilePath, document.fileName ?? basename(document.storedFilePath));
   } catch (error) {
     next(error);
   }

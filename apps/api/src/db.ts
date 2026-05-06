@@ -32,6 +32,15 @@ export type DocumentRow = {
   updatedAt: string;
 };
 
+export type AuditEventRow = {
+  id: string;
+  documentId: string;
+  action: string;
+  actor: string;
+  details: string | null;
+  createdAt: string;
+};
+
 type CreateDocumentInput = Omit<
   DocumentRow,
   "id" | "createdAt" | "updatedAt" | "fileName" | "fileSize" | "mimeType" | "sourceFilePath" | "storedFilePath"
@@ -119,6 +128,14 @@ seedDocuments();
 
 export function listDocuments(): DocumentRow[] {
   return database.prepare("SELECT * FROM documents ORDER BY createdAt DESC, documentNumber ASC").all() as DocumentRow[];
+}
+
+export function getDocument(id: string): DocumentRow | null {
+  return database.prepare("SELECT * FROM documents WHERE id = ?").get(id) as DocumentRow | undefined ?? null;
+}
+
+export function listAuditEvents(documentId: string): AuditEventRow[] {
+  return database.prepare("SELECT * FROM auditEvents WHERE documentId = ? ORDER BY createdAt DESC").all(documentId) as AuditEventRow[];
 }
 
 export function countDocumentsByType(type: string): number {

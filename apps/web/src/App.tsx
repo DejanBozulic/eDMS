@@ -1,12 +1,13 @@
 import { Archive, CheckCircle2, ClipboardList, FileSignature, Files, Search, ShieldCheck, UploadCloud } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { CreateDocumentPanel } from "./components/CreateDocumentPanel";
+import { DocumentDetailPanel } from "./components/DocumentDetailPanel";
 import { DocumentTable } from "./components/DocumentTable";
 import { LifecyclePanel } from "./components/LifecyclePanel";
 import { StatusBoard } from "./components/StatusBoard";
 import { TaskQueue } from "./components/TaskQueue";
 import type { EdmsDocument } from "./data/documents";
-import { createDocument, fetchDocuments, type CreateDocumentPayload } from "./lib/documentsApi";
+import { createDocument, fetchDocumentDetail, fetchDocuments, type CreateDocumentPayload, type DocumentDetail } from "./lib/documentsApi";
 
 const workflow = [
   { label: "Osnutek", value: 8 },
@@ -28,7 +29,9 @@ export function App() {
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [message, setMessage] = useState("Pripravljeno za delo.");
+  const [documentDetail, setDocumentDetail] = useState<DocumentDetail | null>(null);
 
   useEffect(() => {
     fetchDocuments()
@@ -40,6 +43,19 @@ export function App() {
       .catch((error: Error) => setMessage(error.message))
       .finally(() => setIsLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!selectedDocumentId) {
+      setDocumentDetail(null);
+      return;
+    }
+
+    setIsDetailLoading(true);
+    fetchDocumentDetail(selectedDocumentId)
+      .then(setDocumentDetail)
+      .catch((error: Error) => setMessage(error.message))
+      .finally(() => setIsDetailLoading(false));
+  }, [selectedDocumentId]);
 
   const filteredDocuments = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -129,23 +145,7 @@ export function App() {
           onSelectDocument={setSelectedDocumentId}
           selectedDocumentId={selectedDocument?.id}
         />
-        {selectedDocument ? (
-          <section className="document-detail" id="signing">
-            <div className="section-heading">
-              <div>
-                <p className="eyebrow">Document detail</p>
-                <h2>{selectedDocument.number}</h2>
-              </div>
-              <span className={`status-pill ${selectedDocument.status.toLowerCase()}`}>{selectedDocument.lifecycle}</span>
-            </div>
-            <dl>
-              <div><dt>Naziv</dt><dd>{selectedDocument.title}</dd></div>
-              <div><dt>Repozitorij</dt><dd>{selectedDocument.repository}</dd></div>
-              <div><dt>Podpis</dt><dd>{selectedDocument.signature}</dd></div>
-              <div><dt>Training</dt><dd>{selectedDocument.training}</dd></div>
-            </dl>
-          </section>
-        ) : null}
+        <DocumentDetailPanel document={documentDetail} isLoading={isDetailLoading} />
         <LifecyclePanel />
       </section>
     </main>

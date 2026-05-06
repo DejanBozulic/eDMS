@@ -15,9 +15,24 @@ type ApiDocument = {
   reviewDueAt?: string;
   retentionYears: number;
   sharePointPath?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
+  mimeType?: string | null;
+  sourceFilePath?: string | null;
+  storedFilePath?: string | null;
+  auditEvents?: AuditEvent[];
   sharePointTarget?: {
     path: string;
   };
+};
+
+export type AuditEvent = {
+  id: string;
+  documentId: string;
+  action: string;
+  actor: string;
+  details: string | null;
+  createdAt: string;
 };
 
 export type CreateDocumentPayload = {
@@ -29,6 +44,16 @@ export type CreateDocumentPayload = {
   retentionYears: number;
   requiresTraining: boolean;
   requiresSignature: boolean;
+};
+
+export type DocumentDetail = EdmsDocument & {
+  fileName?: string | null;
+  fileSize?: number | null;
+  mimeType?: string | null;
+  sourceFilePath?: string | null;
+  storedFilePath?: string | null;
+  auditEvents: AuditEvent[];
+  downloadUrl: string;
 };
 
 type ApiResponse<T> = {
@@ -73,6 +98,28 @@ export async function createDocument(payload: CreateDocumentPayload): Promise<Ed
 
   const result = await response.json() as ApiResponse<ApiDocument>;
   return mapApiDocument(result.data);
+}
+
+export async function fetchDocumentDetail(documentId: string): Promise<DocumentDetail> {
+  const response = await fetch(`/api/documents/${documentId}`);
+
+  if (!response.ok) {
+    throw new Error("Podrobnosti dokumenta ni bilo mogoce naloziti.");
+  }
+
+  const payload = await response.json() as ApiResponse<ApiDocument>;
+  const document = mapApiDocument(payload.data);
+
+  return {
+    ...document,
+    fileName: payload.data.fileName,
+    fileSize: payload.data.fileSize,
+    mimeType: payload.data.mimeType,
+    sourceFilePath: payload.data.sourceFilePath,
+    storedFilePath: payload.data.storedFilePath,
+    auditEvents: payload.data.auditEvents ?? [],
+    downloadUrl: `/api/documents/${documentId}/download`
+  };
 }
 
 function mapApiDocument(document: ApiDocument): EdmsDocument {
