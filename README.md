@@ -26,7 +26,7 @@ npm install
 npm run dev
 ```
 
-Frontend bo privzeto na `http://localhost:5173`, API na `http://localhost:4000`.
+Frontend bo privzeto na `http://localhost:5180`, API na `http://localhost:4000`.
 
 ## Naslednji produkcijski koraki
 
