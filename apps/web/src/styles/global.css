@@ -26,6 +26,11 @@ button {
   cursor: pointer;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
@@ -130,6 +135,17 @@ h1 {
   outline: 0;
   width: 100%;
   color: #172126;
+}
+
+.system-message {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  color: #526269;
+  background: #ffffff;
+  border: 1px solid #d8e1e4;
+  border-radius: 8px;
+  padding: 0 12px;
 }
 
 .quick-actions {
@@ -245,6 +261,26 @@ h1 {
   padding: 0 10px;
 }
 
+.toggle-row {
+  min-height: 42px;
+  grid-template-columns: 18px 1fr;
+  align-items: center;
+}
+
+.toggle-row input {
+  min-height: auto;
+}
+
+.form-error {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+  color: #9b2c2c;
+  background: #fff1f1;
+  border: 1px solid #f0c4c4;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
 .primary-action {
   grid-column: 1 / -1;
   background: #12363d;
@@ -320,6 +356,15 @@ td {
   white-space: nowrap;
 }
 
+tbody tr {
+  cursor: pointer;
+}
+
+tbody tr:hover,
+.selected-row {
+  background: #f4faf9;
+}
+
 th {
   color: #607179;
   font-size: 12px;
@@ -377,6 +422,41 @@ th {
   border-right: 0;
 }
 
+.document-detail {
+  display: grid;
+  gap: 12px;
+}
+
+.document-detail dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  background: #ffffff;
+  border: 1px solid #d8e1e4;
+  border-radius: 8px;
+}
+
+.document-detail div {
+  padding: 16px;
+  border-right: 1px solid #edf2f4;
+}
+
+.document-detail div:last-child {
+  border-right: 0;
+}
+
+.document-detail dt {
+  color: #607179;
+  font-size: 13px;
+}
+
+.document-detail dd {
+  margin: 7px 0 0;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
 @media (max-width: 920px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -404,6 +484,10 @@ th {
   .lifecycle-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+
+  .document-detail dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 560px) {
@@ -426,5 +510,9 @@ th {
 
   .task-item time {
     grid-column: 2;
+  }
+
+  .document-detail dl {
+    grid-template-columns: 1fr;
   }
 }

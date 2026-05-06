@@ -1,6 +1,13 @@
-import { documents, statusLabels } from "../data/documents";
+import type { EdmsDocument } from "../data/documents";
+import { statusLabels } from "../data/documents";
 
-export function DocumentTable() {
+type DocumentTableProps = {
+  documents: EdmsDocument[];
+  onSelectDocument: (documentId: string) => void;
+  selectedDocumentId?: string;
+};
+
+export function DocumentTable({ documents, onSelectDocument, selectedDocumentId }: DocumentTableProps) {
   return (
     <section className="table-section" id="register">
       <div className="section-heading">
@@ -26,7 +33,11 @@ export function DocumentTable() {
           </thead>
           <tbody>
             {documents.map((document) => (
-              <tr key={document.number}>
+              <tr
+                className={document.id === selectedDocumentId ? "selected-row" : undefined}
+                key={document.id}
+                onClick={() => onSelectDocument(document.id)}
+              >
                 <td>{document.number}</td>
                 <td>{document.title}</td>
                 <td>{document.type}</td>
@@ -40,6 +51,11 @@ export function DocumentTable() {
                 <td>{document.retention}</td>
               </tr>
             ))}
+            {documents.length === 0 ? (
+              <tr>
+                <td colSpan={11}>Ni dokumentov za prikaz.</td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </div>

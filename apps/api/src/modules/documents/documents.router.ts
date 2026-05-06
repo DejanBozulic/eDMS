@@ -5,6 +5,28 @@ import { uploadDocumentPlaceholder } from "../sharepoint/sharepoint.service.js";
 
 export const documentsRouter = Router();
 
+type DemoDocument = {
+  id: string;
+  documentNumber: string;
+  title: string;
+  type: string;
+  owner: string;
+  department: string;
+  confidentiality?: string;
+  retentionYears: number;
+  status: "Draft" | "InReview" | "Approved" | "Signed" | "Effective" | "Superseded" | "Archived";
+  version: number;
+  lifecycle: string;
+  trainingStatus: "NotRequired" | "Assigned" | "Completed";
+  signatureStatus: "NotRequired" | "Pending" | "Signed";
+  reviewDueAt: string | null;
+  sharePointTarget?: {
+    mode: "placeholder" | "graph";
+    path: string;
+  };
+  createdAt?: string;
+};
+
 const createDocumentSchema = z.object({
   title: z.string().min(2),
   type: z.string().min(2),
@@ -16,7 +38,7 @@ const createDocumentSchema = z.object({
   requiresSignature: z.boolean().default(false)
 });
 
-const demoDocuments = [
+const demoDocuments: DemoDocument[] = [
   {
     id: "demo-sop-001",
     documentNumber: "SOP-0001",
@@ -59,18 +81,26 @@ documentsRouter.post("/", async (req, res, next) => {
     const documentNumber = `${payload.type.toUpperCase()}-${String(Date.now()).slice(-6)}`;
     const sharePointTarget = await uploadDocumentPlaceholder(documentNumber, payload.title);
 
-    const document = {
+    const document: DemoDocument = {
       id: crypto.randomUUID(),
       documentNumber,
-      ...payload,
+      title: payload.title,
+      type: payload.type,
+      owner: payload.owner,
+      department: payload.department,
+      confidentiality: payload.confidentiality,
+      retentionYears: payload.retentionYears,
       status: "Draft",
       version: 1,
       lifecycle: "Draft",
       trainingStatus: payload.requiresTraining ? "Assigned" : "NotRequired",
       signatureStatus: payload.requiresSignature ? "Pending" : "NotRequired",
+      reviewDueAt: null,
       sharePointTarget,
       createdAt: new Date().toISOString()
     };
+
+    demoDocuments.unshift(document);
 
     await recordAuditEvent({
       documentId: document.id,

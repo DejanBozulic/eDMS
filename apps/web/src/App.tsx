@@ -1,9 +1,12 @@
 import { Archive, CheckCircle2, ClipboardList, FileSignature, Files, Search, ShieldCheck, UploadCloud } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { CreateDocumentPanel } from "./components/CreateDocumentPanel";
 import { DocumentTable } from "./components/DocumentTable";
 import { LifecyclePanel } from "./components/LifecyclePanel";
 import { StatusBoard } from "./components/StatusBoard";
 import { TaskQueue } from "./components/TaskQueue";
+import type { EdmsDocument } from "./data/documents";
+import { createDocument, fetchDocuments, type CreateDocumentPayload } from "./lib/documentsApi";
 
 const workflow = [
   { label: "Osnutek", value: 8 },
@@ -21,6 +24,52 @@ const actions = [
 ];
 
 export function App() {
+  const [documents, setDocuments] = useState<EdmsDocument[]>([]);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [message, setMessage] = useState("Pripravljeno za delo.");
+
+  useEffect(() => {
+    fetchDocuments()
+      .then((items) => {
+        setDocuments(items);
+        setSelectedDocumentId(items[0]?.id ?? null);
+        setMessage(`Nalozenih dokumentov: ${items.length}`);
+      })
+      .catch((error: Error) => setMessage(error.message))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const filteredDocuments = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return documents;
+    }
+
+    return documents.filter((document) =>
+      [
+        document.number,
+        document.title,
+        document.type,
+        document.owner,
+        document.department,
+        document.status,
+        document.repository
+      ].some((value) => value.toLowerCase().includes(normalizedQuery))
+    );
+  }, [documents, query]);
+
+  const selectedDocument = documents.find((document) => document.id === selectedDocumentId) ?? documents[0];
+
+  async function handleCreateDocument(payload: CreateDocumentPayload) {
+    setMessage("Ustvarjam dokumentni zapis ...");
+    const document = await createDocument(payload);
+    setDocuments((current) => [document, ...current]);
+    setSelectedDocumentId(document.id);
+    setMessage(`Ustvarjen dokument ${document.number}`);
+  }
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -49,9 +98,14 @@ export function App() {
           </div>
           <label className="search-box">
             <Search aria-hidden="true" />
-            <input placeholder="Iskanje po stevilki, nazivu, metapodatkih ali vsebini" />
+            <input
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Iskanje po stevilki, nazivu, metapodatkih ali vsebini"
+              value={query}
+            />
           </label>
         </header>
+        <div className="system-message" role="status">{isLoading ? "Nalaganje dokumentov ..." : message}</div>
 
         <section className="quick-actions" aria-label="Hitre akcije">
           {actions.map((action) => {
@@ -68,9 +122,30 @@ export function App() {
         <StatusBoard items={workflow} />
         <section className="dashboard-grid">
           <TaskQueue />
-          <CreateDocumentPanel />
+          <CreateDocumentPanel onCreate={handleCreateDocument} />
         </section>
-        <DocumentTable />
+        <DocumentTable
+          documents={filteredDocuments}
+          onSelectDocument={setSelectedDocumentId}
+          selectedDocumentId={selectedDocument?.id}
+        />
+        {selectedDocument ? (
+          <section className="document-detail" id="signing">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">Document detail</p>
+                <h2>{selectedDocument.number}</h2>
+              </div>
+              <span className={`status-pill ${selectedDocument.status.toLowerCase()}`}>{selectedDocument.lifecycle}</span>
+            </div>
+            <dl>
+              <div><dt>Naziv</dt><dd>{selectedDocument.title}</dd></div>
+              <div><dt>Repozitorij</dt><dd>{selectedDocument.repository}</dd></div>
+              <div><dt>Podpis</dt><dd>{selectedDocument.signature}</dd></div>
+              <div><dt>Training</dt><dd>{selectedDocument.training}</dd></div>
+            </dl>
+          </section>
+        ) : null}
         <LifecyclePanel />
       </section>
     </main>
